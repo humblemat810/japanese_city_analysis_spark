@@ -83,7 +83,7 @@ from pyspark.sql.functions import explode, split, desc, lit
 df2 = df.withColumn("machi_jp_chars", split(df.machi_jp, ""))
 
 # Explode the array of characters into individual rows using the explode function
-df2 = df2.select(explode(df2.machi_jp_chars).alias("machi_jp_char"))
+df2 = df2.select(explode(df2.machi_jp_chars).alias("machi_jp_char").cast("char(1)"))
 df2 = df2.groupBy("machi_jp_char").count().withColumnRenamed("count", "frequency").orderBy(desc("frequency"))
 df2.limit(100).show()
 

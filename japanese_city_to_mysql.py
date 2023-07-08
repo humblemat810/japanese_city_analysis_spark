@@ -1,15 +1,33 @@
-
-import urllib.request
-import os
-
+#%%
+hdfs_url = "hdfs://localhost:9000/"
 from pyspark.sql import SparkSession
+use_in_code_jar = True
+if use_in_code_jar:
+    use_hdfs_jar = False
+    if use_hdfs_jar:
 
+        driver_path = "hdfs://localhost:9000/user/pchan/library/jar/mysql-connector-j-8.0.33.jar"
+        
+        spark = SparkSession.builder.appName("jp address to mysql hd jar")\
+            .config("spark.driver.extraClassPath", driver_path).getOrCreate()
+        sc = spark.sparkContext
+        sc.addFile(driver_path)
+    else:
+        #driver_path = "C:\Program Files (x86)\MySQL\Connector J 8.0\mysql-connector-j-8.0.33.jar"
+        driver_path = "/opt/mysql-connector-j-8.0.33/mysql-connector-j-8.0.33.jar"
+        # Create a Spark session
+        spark = SparkSession.builder.appName("jp address to mysql")\
+            .config("spark.driver.extraClassPath", driver_path).getOrCreate()
+else:
 
-driver_path = "C:\Program Files (x86)\MySQL\Connector J 8.0\mysql-connector-j-8.0.33.jar"
-# Create a Spark session
-spark = SparkSession.builder.appName("jp address download")\
-    .config("spark.driver.extraClassPath", driver_path).getOrCreate()
+    spark = (SparkSession.builder.appName("jp address to mysql hd jar")\
+                #.config("spark.hadoop.fs.defaultFS", hdfs_url)\
+                .getOrCreate())
+sc = spark.sparkContext
 
+conf = sc.getConf()
+defaultFS = conf.get("spark.hadoop.fs.defaultFS")
+print("fs.defaultFS = ", defaultFS)
 
 
 schema = {
@@ -21,7 +39,8 @@ schema = {
     'citymachi_en': 'string',
     'machi_en': 'string'
 }
-from pyspark.sql.types import StructType, StructField, IntegerType, StringType
+from pyspark.sql.types import StructType, StructField, \
+        IntegerType, StringType, CharType
 
 # Define the Spark schema
 spark_schema = StructType([
@@ -39,24 +58,28 @@ spark_schema = StructType([
 #                  encoding="cp932", 
 #                  names=schema.keys(), 
 #                  dtype=schema)
-
-df = spark.read.csv("./data/KEN_ALL_ROME.csv",
-                 encoding="cp932", 
-                 schema=spark_schema)
+import pandas as pd
+import os
+cwd = os.getcwd()
+df_pd=pd.read_csv(f"file://{cwd}/data/KEN_ALL_ROME.csv", encoding="cp932", header=None)
+df=spark.createDataFrame(df_pd,schema=spark_schema)
+# df = spark.read.csv("./data/KEN_ALL_ROME.csv",
+#                  encoding="cp932", 
+#                  schema=spark_schema)
 
 # Print the first few rows of the DataFrame
 df.show(5)
 
-import mariadb
-conn = mariadb.connect(
-        user="root",
-        password="my-secret-pw",
-        host="192.168.0.101",
-        port=3306,
-        database="mysql"
-    )
+# import mariadb
+# conn = mariadb.connect(
+#         user="root",
+#         password="my-secret-pw",
+#         host="127.0.0.1",
+#         port=3306,
+#         database="mysql"
+#     )
 jdbc_driver = "com.mysql.cj.jdbc.Driver"
-url = "jdbc:mysql://192.168.0.101/JP_ADDRESS_ANALYSIS"
+url = "jdbc:mysql://127.0.0.1/JP_ADDRESS_ANALYSIS"
 properties = {"driver": jdbc_driver, "user": "root", 
               "password": "my-secret-pw"}
 from pyspark.sql.functions import current_date
@@ -64,6 +87,6 @@ df2 = df.withColumn('last_update',current_date())
 df2.write.jdbc(url=url, table="JP_ADDRESS", 
                mode="overwrite", 
                properties=properties)
-cur = conn.cursor()
 # Stop the Spark session
 spark.stop()
+# %%
