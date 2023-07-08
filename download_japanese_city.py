@@ -6,13 +6,15 @@ import os
 
 from pyspark.sql import SparkSession
 
-driver_path = "C:\Program Files (x86)\MySQL\Connector J 8.0\mysql-connector-j-8.0.33.jar"
+#driver_path = "C:\Program Files (x86)\MySQL\Connector J 8.0\mysql-connector-j-8.0.33.jar"
+driver_path = "/opt/mysql-connector-j-8.0.33/mysql-connector-j-8.0.33.jar"
 # Create a Spark session
 spark = SparkSession.builder.appName("jp address download")\
     .config("spark.driver.extraClassPath", driver_path).getOrCreate()
 url = 'https://www.post.japanpost.jp/zipcode/dl/roman/ken_all_rome.zip'
 filename = 'ken_all_rome.zip'
 data_folder = "./data/"
+#%%
 if not os.path.exists(data_folder):
     os.makedirs(data_folder)
 full_download_path = os.path.join(data_folder, filename)
@@ -71,10 +73,12 @@ spark_schema = StructType([
 #                  encoding="cp932", 
 #                  names=schema.keys(), 
 #                  dtype=schema)
-
-df = spark.read.csv("./data/KEN_ALL_ROME.csv",
-                 encoding="cp932", 
-                 schema=spark_schema)
+import pandas as pd
+df_pd=pd.read_csv("./data/KEN_ALL_ROME.csv", encoding="cp932", header=None)
+df=spark.createDataFrame(df_pd,schema=spark_schema)
+# df = spark.read.csv(r"./data/KEN_ALL_ROME.csv",
+#                  encoding="cp932", 
+#                  schema=spark_schema)
 # Print the first few rows of the DataFrame
 df.show(5)
 
@@ -100,7 +104,7 @@ import mariadb
 conn = mariadb.connect(
         user="root",
         password="my-secret-pw",
-        host="192.168.0.101",
+        host="127.0.0.1",
         port=3306,
         database="mysql"
     )
@@ -115,13 +119,15 @@ def exe_load_show(cur, sql):
     rows = cur.fetchall()
     print(rows)
     return rows
-
+#%%
 
 cur.execute("CREATE DATABASE IF NOT EXISTS JP_ADDRESS_ANALYSIS;")
 exe_load_show(cur, "show databases;")
+
+#%%
 #JDBC 
 jdbc_driver = "com.mysql.jdbc.Driver"
-url = "jdbc:mysql://192.168.0.101/JP_ADDRESS_ANALYSIS"
+url = "jdbc:mysql://127.0.0.1/JP_ADDRESS_ANALYSIS"
 properties = {"driver": jdbc_driver, "user": "root", 
               "password": "my-secret-pw"}
 

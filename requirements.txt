@@ -18,7 +18,7 @@ hyperlink==21.0.0
 idna==2.10
 incremental==22.10.0
 ipykernel==6.23.0
-ipython==8.13.2
+ipython
 itemadapter==0.8.0
 itemloaders==1.1.0
 jedi==0.18.2
@@ -47,11 +47,11 @@ pycparser==2.21
 PyDispatcher==2.0.7
 Pygments==2.15.1
 pyOpenSSL==23.1.1
-pyspark==3.3.2
+pyspark==3.4.0
 python-dateutil==2.8.2
 python-slugify==8.0.1
 pytz==2023.3
-pywin32==306
+mariadb
 pyzmq==25.0.2
 queuelib==1.6.2
 requests==2.25.1
@@ -66,7 +66,7 @@ tornado==6.3.2
 tqdm==4.65.0
 traitlets==5.9.0
 Twisted==22.10.0
-twisted-iocpsupport==1.0.3
+
 typing_extensions==4.5.0
 tzdata==2023.3
 urllib3==1.26.15
